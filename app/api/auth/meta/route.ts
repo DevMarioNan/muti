@@ -12,12 +12,11 @@ export async function GET() {
   }
 
   const scopes = [
-    "instagram_basic",
-    "instagram_content_publish",
-    "instagram_manage_comments",
-    "instagram_manage_insights",
-    "pages_read_engagement",
-    "pages_show_list",
+    "instagram_business_basic",
+    "instagram_business_manage_messages",
+    "instagram_business_manage_comments",
+    "instagram_business_content_publish",
+    "instagram_business_manage_insights",
   ].join(",")
 
   const authUrl = new URL("https://api.instagram.com/oauth/authorize")
