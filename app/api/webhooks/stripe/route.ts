@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { db } from "@/lib/db"
+import { webhookRateLimiter, checkRateLimit } from "@/lib/ratelimit"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
 })
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "anonymous"
+  const { success, remaining, limit } = await checkRateLimit(webhookRateLimiter, ip)
+
+  if (!success) {
+    console.warn(`Webhook rate limit exceeded for IP: ${ip}`)
+  } else {
+    console.log(`Webhook rate limit: ${remaining}/${limit} remaining for IP: ${ip}`)
+  }
+
   const body = await request.text()
   const signature = request.headers.get("stripe-signature")
 
