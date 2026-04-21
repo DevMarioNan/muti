@@ -3,7 +3,7 @@ import Stripe from "stripe"
 import { db } from "@/lib/db"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
+  apiVersion: "2026-03-25.dahlia",
 })
 
 export async function POST(request: NextRequest) {
@@ -91,10 +91,9 @@ export async function POST(request: NextRequest) {
 
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id
+        const subscriptionId = invoice.lines.data.find(
+          (line) => line.subscription
+        )?.subscription as string | undefined
 
         if (subscriptionId) {
           const user = await db.user.findFirst({
