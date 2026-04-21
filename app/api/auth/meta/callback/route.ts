@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { signIn } from "@/auth"
 import { cookies } from "next/headers"
+import { encryptToken } from "@/lib/crypto"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -75,12 +76,15 @@ export async function GET(request: NextRequest) {
     // Continue without username/picture
   }
 
-  // Sign in with NextAuth using credentials
+  // Encrypt the access token before storing
+  const encryptedToken = encryptToken(data.access_token)
+
+  // Sign in with NextAuth using credentials (includes storing encrypted token in DB via authorize)
   const redirectUrl = new URL("/dashboard", request.url)
   redirectUrl.searchParams.set("instagram_connected", "true")
 
   await signIn("credentials", {
-    instagramToken: data.access_token,
+    instagramToken: encryptedToken,
     instagramUserId: data.user_id,
     instagramUsername,
     profilePictureUrl,

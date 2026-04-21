@@ -36,7 +36,7 @@ model MetaAccount {
   userId               String    @unique
   instagramBusinessId  String    @unique
   instagramUsername    String?
-  accessToken          String // should be encrypted at rest via Supabase
+  accessToken          String // @encrypted - encrypted at application layer before storage
   accessTokenExpiresAt DateTime?
   connectedAt          DateTime  @default(now())
 
