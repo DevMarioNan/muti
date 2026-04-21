@@ -73,8 +73,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub
       }
       // Pass through the expiry time for client-side checks
-      if (token.exp && session.expires) {
-        session.expires = new Date(token.exp * 1000).toISOString()
+      if (token.exp) {
+        // Set session expiry to match JWT expiry
+        session.expires = new Date(token.exp * 1000) as typeof session.expires
       }
       return session
     },
