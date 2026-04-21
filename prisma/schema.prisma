@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -16,9 +13,103 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String?
+  avatarUrl        String?
+  password         String? // null if OAuth-only user
+  emailVerified    Boolean  @default(false)
+  subscriptionTier String   @default("FREE") // FREE | PAID
+  stripeCustomerId String?
+  stripeSubId      String? // nullable when no active subscription
+  stripeSubStatus  String? // active | canceled | past_due | etc.
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  metaAccount      MetaAccount?
+  posts            Post[]
+  emailPreferences UserEmailPreference?
+}
+
+model MetaAccount {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  instagramBusinessId  String    @unique
+  instagramUsername    String?
+  accessToken          String // should be encrypted at rest via Supabase
+  accessTokenExpiresAt DateTime?
+  connectedAt          DateTime  @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts Post[]
+
+  @@index([instagramBusinessId])
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  userId        String
+  metaAccountId String
+  caption       String? // Instagram caption text
+  mediaUrls     String[]
+  postType      String    @default("feed") // feed | story | reel | carousel
+  status        String    @default("draft") // draft | scheduled | published | failed
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  metaPostId    String?
+  retryCount    Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metaAccount  MetaAccount      @relation(fields: [metaAccountId], references: [id], onDelete: Cascade)
+  scheduledJob ScheduledJob?
+  analytics    AnalyticsEvent[]
+
+  @@index([scheduledAt, status])
+}
+
+model ScheduledJob {
+  id        String   @id @default(cuid())
+  postId    String   @unique
+  status    String   @default("pending") // pending | processing | completed | failed
+  attempts  Int      @default(0)
+  lastError String?
+  runAt     DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([status, runAt])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  postId      String
+  impressions Int      @default(0)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  saves       Int      @default(0)
+  shares      Int      @default(0)
+  reach       Int      @default(0)
+  collectedAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, collectedAt])
+}
+
+model UserEmailPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  postPublished   Boolean  @default(true)
+  postFailed      Boolean  @default(true)
+  weeklyDigest    Boolean  @default(true)
+  marketingEmails Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
