@@ -80,12 +80,18 @@ export default async function DashboardPage({
                 <p className="text-white/60 text-sm mb-3">
                   Connect your Instagram Business account to start posting
                 </p>
-                <Link
-                  href="/api/auth/meta"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium rounded-lg transition-colors"
+                <button
+                  onClick={async () => {
+                    const res = await fetch("/api/auth/meta")
+                    const data = await res.json()
+                    if (data.url) {
+                      window.location.href = data.url
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 >
                   Connect Instagram
-                </Link>
+                </button>
               </div>
             )}
           </div>
