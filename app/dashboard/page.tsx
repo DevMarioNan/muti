@@ -129,12 +129,12 @@ export default async function DashboardPage({
             {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 {page > 1 ? (
-                  <a
+                  <Link
                     href={`/dashboard?page=${page - 1}`}
                     className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     Previous
-                  </a>
+                  </Link>
                 ) : (
                   <span className="px-3 py-1 bg-white/5 text-white/40 text-sm font-medium rounded-lg cursor-not-allowed">
                     Previous
@@ -144,12 +144,12 @@ export default async function DashboardPage({
                   Page {page} of {totalPages}
                 </span>
                 {page < totalPages ? (
-                  <a
+                  <Link
                     href={`/dashboard?page=${page + 1}`}
                     className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     Next
-                  </a>
+                  </Link>
                 ) : (
                   <span className="px-3 py-1 bg-white/5 text-white/40 text-sm font-medium rounded-lg cursor-not-allowed">
                     Next
