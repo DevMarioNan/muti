@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { encryptToken } from "@/lib/crypto"
+import { db } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -40,13 +42,25 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // TODO: Store the access token and user info in the database
-  // For now, just redirect to dashboard with the token info
   const token = data.access_token
   const instagramUserId = data.user_id
 
-  // Redirect to dashboard where user can complete onboarding
+  // Encrypt the access token before storing in database
+  const encryptedToken = encryptToken(token)
+
+  // Store the encrypted token in the database
+  await db.metaAccount.upsert({
+    where: { instagramBusinessId: instagramUserId },
+    update: { accessToken: encryptedToken },
+    create: {
+      userId: "", // Will be linked after user authentication
+      instagramBusinessId: instagramUserId,
+      accessToken: encryptedToken,
+    },
+  })
+
+  // Redirect to dashboard (token is no longer passed in URL for security)
   return NextResponse.redirect(
-    `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?instagram_connected=true&ig_user_id=${instagramUserId}&token=${token}`
+    `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?instagram_connected=true&ig_user_id=${instagramUserId}`
   )
 }
